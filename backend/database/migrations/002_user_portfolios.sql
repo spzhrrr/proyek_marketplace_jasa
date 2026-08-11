@@ -1,5 +1,5 @@
 -- Migration: user portfolio items for profile page
-USE proyek_coursenet;
+USE proyek_marketplace;
 
 CREATE TABLE IF NOT EXISTS user_portfolios (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

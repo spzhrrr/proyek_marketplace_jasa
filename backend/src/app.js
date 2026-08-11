@@ -1,3 +1,4 @@
+import "./config/loadEnv.js";
 import express from "express";
 import cookieParser from "cookie-parser";
 import path from "path";
@@ -81,6 +82,12 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Server: http://localhost:${PORT}`);
+  if (hasFrontendBuild) {
+    console.log("Frontend: dilayani dari frontend/dist (buka URL di atas)");
+  } else {
+    console.log("Frontend: belum ada build — jalankan npm run build di folder frontend");
+  }
+  console.log("Dev hot-reload (opsional): cd frontend && npm run dev → http://localhost:5173");
 });
 
 server.on("error", (err) => {

@@ -22,6 +22,7 @@ import DashboardPage from "./features/account/DashboardPage.jsx";
 import CompleteProfilePage from "./features/account/CompleteProfilePage.jsx";
 import ProfilePage from "./features/account/ProfilePage.jsx";
 import NotificationsPage from "./features/account/NotificationsPage.jsx";
+import ChatInboxPage from "./features/account/ChatInboxPage.jsx";
 import OrderDetailPage from "./features/orders/OrderDetailPage.jsx";
 import PaymentMethodPage from "./features/orders/PaymentMethodPage.jsx";
 import VerifyHubPage from "./features/verification/VerifyHubPage.jsx";
@@ -32,10 +33,17 @@ import VerifyBankPage from "./features/verification/VerifyBankPage.jsx";
 import AdminDashboardPage from "./features/admin/AdminDashboardPage.jsx";
 import AdminKtpPage from "./features/admin/AdminKtpPage.jsx";
 import AdminKtpDetailPage from "./features/admin/AdminKtpDetailPage.jsx";
+import AdminBankPage from "./features/admin/AdminBankPage.jsx";
+import AdminBankDetailPage from "./features/admin/AdminBankDetailPage.jsx";
+import AdminWithdrawalsPage from "./features/admin/AdminWithdrawalsPage.jsx";
 import AdminUsersPage from "./features/admin/AdminUsersPage.jsx";
 import AdminOrdersPage from "./features/admin/AdminOrdersPage.jsx";
+import AdminReportsPage from "./features/admin/AdminReportsPage.jsx";
 import GatewayDashboardPage from "./features/gateway/GatewayDashboardPage.jsx";
 import GatewayPayPage from "./features/gateway/GatewayPayPage.jsx";
+
+import JobApplicationsPage from "./features/catalog/JobApplicationsPage.jsx";
+import ServiceRequestsPage from "./features/catalog/ServiceRequestsPage.jsx";
 
 function GatewayLayout({ children }) {
   return <Layout wide compact>{children}</Layout>;
@@ -54,17 +62,20 @@ export default function App() {
       <Route path="/jasa/baru" element={<JasaPostPage />} />
       <Route path="/jasa/:id/edit" element={<JasaEditPage />} />
       <Route path="/jasa/:id/sewa" element={<JasaSewaPage />} />
-      <Route path="/jasa/:id/chat" element={<JasaChatPage />} />
+      <Route path="/jasa/:id/chat" element={<ProtectedRoute><JasaChatPage /></ProtectedRoute>} />
+      <Route path="/jasa/:id/requests" element={<ProtectedRoute><ServiceRequestsPage /></ProtectedRoute>} />
       <Route path="/jasa/:id" element={<JasaDetailPage />} />
 
       <Route path="/lowongan" element={<LowonganListPage />} />
       <Route path="/lowongan/baru" element={<LowonganPostPage />} />
       <Route path="/lowongan/:id/edit" element={<LowonganEditPage />} />
       <Route path="/lowongan/:id/lamar" element={<LowonganLamarPage />} />
-      <Route path="/lowongan/:id/chat" element={<LowonganChatPage />} />
+      <Route path="/lowongan/:id/lamaran" element={<JobApplicationsPage />} />
+      <Route path="/lowongan/:id/chat" element={<ProtectedRoute><LowonganChatPage /></ProtectedRoute>} />
       <Route path="/lowongan/:id" element={<LowonganDetailPage />} />
 
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/chat" element={<ChatInboxPage />} />
       <Route path="/profile/:id" element={<ProfilePage />} />
       <Route path="/notifikasi" element={<NotificationsPage />} />
       <Route path="/orders/:id/bayar" element={<PaymentMethodPage />} />
@@ -87,8 +98,12 @@ export default function App() {
         <Route index element={<AdminDashboardPage />} />
         <Route path="ktp" element={<AdminKtpPage />} />
         <Route path="ktp/:id" element={<AdminKtpDetailPage />} />
+        <Route path="bank" element={<AdminBankPage />} />
+        <Route path="bank/:id" element={<AdminBankDetailPage />} />
+        <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="reports" element={<AdminReportsPage />} />
       </Route>
 
       <Route path="/gateway" element={<GatewayLayout><ProtectedRoute><GatewayDashboardPage /></ProtectedRoute></GatewayLayout>} />

@@ -1,10 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { needsVerification, isKtpApproved, isBankVerified } from "../utils/verification.js";
+import { needsVerification, isKtpApproved, isBankVerified, bankStatusLabel } from "../utils/verification.js";
 import { isProfileComplete } from "../utils/profile.js";
 
 export default function VerificationBanner() {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  // Hub/step verify sudah punya CTA sendiri — banner di sini hanya dobel
+  if (pathname.startsWith("/verify")) return null;
   if (!user || !isProfileComplete(user)) return null;
 
   if (needsVerification(user)) {
@@ -41,11 +44,33 @@ export default function VerificationBanner() {
     );
   }
 
+  if (isKtpApproved(user) && user.bank_status === "PENDING") {
+    return (
+      <div className="verify-banner verify-banner-soft">
+        <div className="verify-banner-inner">
+          <span>Rekening bank kamu sedang ditinjau admin ({bankStatusLabel("PENDING")}).</span>
+          <Link to="/verify/bank" className="btn btn-sm">Lihat status</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isKtpApproved(user) && user.bank_status === "REJECTED") {
+    return (
+      <div className="verify-banner verify-banner-warn">
+        <div className="verify-banner-inner">
+          <span>Rekening bank ditolak. Perbaiki data dan ajukan ulang.</span>
+          <Link to="/verify/bank" className="btn btn-sm btn-primary">Ajukan ulang</Link>
+        </div>
+      </div>
+    );
+  }
+
   if (isKtpApproved(user) && !isBankVerified(user)) {
     return (
       <div className="verify-banner verify-banner-soft">
         <div className="verify-banner-inner">
-          <span>Isi rekening bank jika ingin post jasa dan menerima pendapatan.</span>
+          <span>Isi rekening bank jika ingin post jasa dan menerima pendapatan (diverifikasi admin).</span>
           <Link to="/verify/bank" className="btn btn-sm btn-primary">Lengkapi rekening</Link>
         </div>
       </div>

@@ -1,2 +1,2 @@
-export const secret = "mockup-jwt-secret";
-export const expiresIn = "7d";
+export const secret = process.env.JWT_SECRET || "tolongin-jwt-secret-dev";
+export const expiresIn = process.env.JWT_EXPIRES_IN || "7d";

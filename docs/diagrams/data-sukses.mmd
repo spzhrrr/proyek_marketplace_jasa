@@ -1,0 +1,13 @@
+sequenceDiagram
+  actor U as Pengguna
+  participant FE as React api.js
+  participant API as Express
+  participant DB as MySQL
+
+  U->>FE: klik / submit
+  FE->>API: fetch /api/mp/... + cookie
+  API->>API: guard JWT + validasi
+  API->>DB: SQL parameterized
+  DB-->>API: rows
+  API-->>FE: JSON ok true
+  FE-->>U: render kartu / redirect

@@ -13,32 +13,42 @@ const PORTFOLIO_MIMES = [
 
 fs.mkdirSync(uploadsProfileDir, { recursive: true });
 
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, uploadsProfileDir);
+  },
+  filename(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `profile-user${req.user.id}-${file.fieldname}-${Date.now()}${ext}`);
+  },
+});
+
 const profileUpload = multer({
-  storage: multer.diskStorage({
-    destination(req, file, cb) {
-      cb(null, uploadsProfileDir);
-    },
-    filename(req, file, cb) {
-      const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-      cb(null, `profile-user${req.user.id}-${file.fieldname}-${Date.now()}${ext}`);
-    },
-  }),
+  storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter(req, file, cb) {
-    const allowed =
-      file.fieldname === "profilepic" ? IMAGE_MIMES : PORTFOLIO_MIMES;
-    if (allowed.includes(file.mimetype)) return cb(null, true);
+    if (IMAGE_MIMES.includes(file.mimetype)) return cb(null, true);
     cb(new Error("Format file tidak didukung"));
   },
 });
 
+const portfolioUpload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter(req, file, cb) {
+    if (PORTFOLIO_MIMES.includes(file.mimetype)) return cb(null, true);
+    cb(new Error("Format file tidak didukung. Gunakan JPG, PNG, PDF, DOC, atau DOCX"));
+  },
+});
+
 export function handleProfilePortfolioUpload(req, res, next) {
-  profileUpload.fields([
+  portfolioUpload.fields([
     { name: "portfolio_image", maxCount: 1 },
     { name: "portfolio_file", maxCount: 1 },
   ])(req, res, (err) => {
     if (!err) return next();
-    req.uploadError = err.message || "Gagal upload";
+    req.uploadError =
+      err.code === "LIMIT_FILE_SIZE" ? "Ukuran file maksimal 8 MB" : err.message || "Gagal upload";
     next();
   });
 }

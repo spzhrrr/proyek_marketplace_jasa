@@ -14,16 +14,23 @@ async function request(url, options = {}) {
 }
 
 async function upload(url, formData) {
-  const res = await fetch(url, { method: "POST", credentials: "include", body: formData });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error(data.error || "Upload gagal");
-    err.status = res.status;
-    err.errors = data.errors;
-    err.need = data.need;
+  try {
+    const res = await fetch(url, { method: "POST", credentials: "include", body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || "Upload gagal");
+      err.status = res.status;
+      err.errors = data.errors;
+      err.need = data.need;
+      throw err;
+    }
+    return data;
+  } catch (err) {
+    if (err.message === "Failed to fetch") {
+      throw new Error("Gagal terhubung ke server backend. Pastikan server backend Anda sudah berjalan di port 5000.");
+    }
     throw err;
   }
-  return data;
 }
 
 async function gatewayRequest(url, options = {}) {
@@ -60,9 +67,25 @@ export const api = {
   jasaDelete: (id) => request(`/api/mp/jasa/${id}`, { method: "DELETE" }),
   jasaSewa: (id, body) =>
     request(`/api/mp/jasa/${id}/sewa`, { method: "POST", body: JSON.stringify(body) }),
-  jasaChat: (id) => request(`/api/mp/jasa/${id}/chat`),
-  jasaChatSend: (id, pesan) =>
-    request(`/api/mp/jasa/${id}/chat`, { method: "POST", body: JSON.stringify({ pesan }) }),
+  jasaChat: (id, withUserId) => {
+    const q = withUserId ? `?with=${encodeURIComponent(withUserId)}` : "";
+    return request(`/api/mp/jasa/${id}/chat${q}`);
+  },
+  jasaChatSend: (id, pesan, targetUserId) =>
+    request(`/api/mp/jasa/${id}/chat`, {
+      method: "POST",
+      body: JSON.stringify({
+        pesan,
+        ...(targetUserId != null ? { target_user_id: targetUserId } : {}),
+      }),
+    }),
+
+  chats: () => request("/api/mp/chats"),
+  chatThread: (room) => request(`/api/mp/chats/thread?room=${encodeURIComponent(room)}`),
+  chatSend: (room, pesan) =>
+    request("/api/mp/chats", { method: "POST", body: JSON.stringify({ room, pesan }) }),
+  chatRead: (room) =>
+    request("/api/mp/chats/read", { method: "POST", body: JSON.stringify({ room }) }),
 
   lowonganList: (q) => request(`/api/mp/lowongan?${new URLSearchParams(q || {})}`),
   lowonganShow: (id) => request(`/api/mp/lowongan/${id}`),
@@ -71,11 +94,20 @@ export const api = {
   lowonganUpdate: (id, body) =>
     request(`/api/mp/lowongan/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   lowonganDelete: (id) => request(`/api/mp/lowongan/${id}`, { method: "DELETE" }),
+  lowonganClose: (id) => request(`/api/mp/lowongan/${id}/tutup`, { method: "POST" }),
   lowonganLamar: (id, fd) => upload(`/api/mp/lowongan/${id}/lamar`, fd),
-  lowonganChat: (id) => request(`/api/mp/lowongan/${id}/chat`),
-  lowonganChatSend: (id, pesan) =>
-    request(`/api/mp/lowongan/${id}/chat`, { method: "POST", body: JSON.stringify({ pesan }) }),
-
+  lowonganChat: (id, withUserId) => {
+    const q = withUserId ? `?with=${encodeURIComponent(withUserId)}` : "";
+    return request(`/api/mp/lowongan/${id}/chat${q}`);
+  },
+  lowonganChatSend: (id, pesan, targetUserId) =>
+    request(`/api/mp/lowongan/${id}/chat`, {
+      method: "POST",
+      body: JSON.stringify({
+        pesan,
+        ...(targetUserId != null ? { target_user_id: targetUserId } : {}),
+      }),
+    }),
   dashboard: () => request("/api/mp/dashboard"),
   notifikasi: () => request("/api/mp/notifikasi"),
   notifikasiBaca: (id) => request(`/api/mp/notifikasi/${id}/baca`, { method: "POST" }),
@@ -109,7 +141,11 @@ export const api = {
     request(`/api/mp/orders/${id}/review`, { method: "POST", body: JSON.stringify(body) }),
 
   applicationAccept: (id) => request(`/api/mp/applications/${id}/terima`, { method: "POST" }),
-  applicationReject: (id) => request(`/api/mp/applications/${id}/tolak`, { method: "POST" }),
+  applicationReject: (id, body) => request(`/api/mp/applications/${id}/tolak`, { method: "POST", body: JSON.stringify(body || {}) }),
+  getServiceRequests: (id) => request(`/api/mp/jasa/${id}/requests`),
+  getJobApplications: (id) => request(`/api/mp/lowongan/${id}/lamaran`),
+  toggleJasaActive: (id) => request(`/api/mp/jasa/${id}/toggle-active`, { method: "PATCH" }),
+  toggleLowonganActive: (id) => request(`/api/mp/lowongan/${id}/toggle-active`, { method: "PATCH" }),
 
   verifyHub: () => request("/api/mp/verify"),
   verifyEmailStatus: () => request("/api/mp/verify/email"),
@@ -134,6 +170,14 @@ export const api = {
       }
       return data;
     }),
+  profileChangeEmailStart: (email) =>
+    request("/api/mp/profile/email/start", { method: "POST", body: JSON.stringify({ email }) }),
+  profileChangeEmailConfirm: (email, otp) =>
+    request("/api/mp/profile/email/confirm", { method: "POST", body: JSON.stringify({ email, otp }) }),
+  profileChangePhoneStart: (phone) =>
+    request("/api/mp/profile/phone/start", { method: "POST", body: JSON.stringify({ phone }) }),
+  profileChangePhoneConfirm: (phone, otp) =>
+    request("/api/mp/profile/phone/confirm", { method: "POST", body: JSON.stringify({ phone, otp }) }),
   profileAddPortfolio: (fd) => upload("/api/mp/profile/portfolio", fd),
   profileDeletePortfolio: (itemId) =>
     request(`/api/mp/profile/portfolio/${itemId}`, { method: "DELETE" }),
@@ -142,13 +186,57 @@ export const api = {
   adminKtpDetail: (id) => request(`/api/mp/admin/ktp/${id}`),
   adminDashboard: () => request("/api/mp/admin/dashboard"),
   adminUsers: () => request("/api/mp/admin/users"),
-  adminOrders: () => request("/api/mp/admin/orders"),
+  adminUserDetail: (id) => request(`/api/mp/admin/users/${id}`),
+  adminOrders: (status = "all") => request(`/api/mp/admin/orders?status=${status}`),
   adminApproveKtp: (id) => request(`/api/mp/admin/ktp/${id}/approve`, { method: "POST" }),
-  adminRejectKtp: (id, reason) =>
+  adminRejectKtp: (id, payload) =>
     request(`/api/mp/admin/ktp/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify(typeof payload === "string" ? { reason: payload } : payload),
+    }),
+
+  adminBank: () => request("/api/mp/admin/bank"),
+  adminBankDetail: (id) => request(`/api/mp/admin/bank/${id}`),
+  adminApproveBank: (id) => request(`/api/mp/admin/bank/${id}/approve`, { method: "POST" }),
+  adminRejectBank: (id, reason) =>
+    request(`/api/mp/admin/bank/${id}/reject`, {
       method: "POST",
       body: JSON.stringify({ reason }),
     }),
+
+  orderDispute: (id, reason) =>
+    request(`/api/mp/orders/${id}/dispute`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  adminResolveDispute: (id, outcome, note) =>
+    request(`/api/mp/admin/orders/${id}/resolve-dispute`, {
+      method: "POST",
+      body: JSON.stringify({ outcome, note }),
+    }),
+
+  requestWithdrawal: (amount) =>
+    request("/api/mp/withdrawals", {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    }),
+  listWithdrawals: () => request("/api/mp/withdrawals"),
+  adminWithdrawals: () => request("/api/mp/admin/withdrawals"),
+  adminApproveWithdrawal: (id, note) =>
+    request(`/api/mp/admin/withdrawals/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  adminRejectWithdrawal: (id, note) =>
+    request(`/api/mp/admin/withdrawals/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+
+  createUserReport: (body) => request("/api/mp/reports", { method: "POST", body: JSON.stringify(body) }),
+  adminReports: () => request("/api/mp/admin/reports"),
+  adminActionReport: (reportId, body) =>
+    request(`/api/mp/admin/reports/${reportId}/action`, { method: "POST", body: JSON.stringify(body) }),
 
   getTransaction: (code) =>
     gatewayRequest(`/gateway/api/transactions/${code}`).then((d) => {

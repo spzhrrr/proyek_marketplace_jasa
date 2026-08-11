@@ -135,6 +135,18 @@ function validateKtpNumber(ktpNumber) {
   return errors;
 }
 
+export const BIO_MAX_LENGTH = 180;
+
+function validateBio(bio, { required = false } = {}) {
+  const errors = [];
+  const value = typeof bio === "string" ? bio.trim() : "";
+  if (required && !value) errors.push("Bio wajib diisi");
+  if (value.length > BIO_MAX_LENGTH) {
+    errors.push(`Bio maksimal ${BIO_MAX_LENGTH} karakter`);
+  }
+  return errors;
+}
+
 export {
   validateEmail,
   validatePassword,
@@ -142,4 +154,5 @@ export {
   validatePhone,
   normalizePhone,
   validateKtpNumber,
+  validateBio,
 };

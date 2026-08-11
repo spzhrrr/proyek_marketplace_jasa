@@ -1,0 +1,11 @@
+flowchart TD
+  A[Klien pasang lowongan OPEN] --> B[Pelamar kirim lamaran PENDING]
+  B --> C{Klien}
+  C -->|tolak manual| D[REJECTED + alasan]
+  C -->|Tutup lowongan| E[Semua PENDING JOB_CLOSED]
+  E --> F[Job CANCELLED, hilang dari katalog]
+  C -->|terima 1 orang| G[ACCEPTED]
+  G --> H[Pelamar lain AUTO_FILLED]
+  G --> I[Job FILLED]
+  G --> J[Order escrow dibuat]
+  J --> K[Bayar — dikerjakan — selesai]

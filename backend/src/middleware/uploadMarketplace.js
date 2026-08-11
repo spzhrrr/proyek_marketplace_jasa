@@ -95,7 +95,7 @@ function wrapUpload(uploadMiddleware, req, res, next) {
 export function handleJasaPostUpload(req, res, next) {
   wrapUpload(
     jasaUpload.fields([
-      { name: "cover_image", maxCount: 1 },
+      { name: "cover_image", maxCount: 10 },
       { name: "portfolio_file", maxCount: 1 },
     ]),
     req,

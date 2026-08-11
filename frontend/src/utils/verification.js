@@ -15,7 +15,18 @@ export function isKtpApproved(user) {
 }
 
 export function isBankVerified(user) {
+  if (user?.bank_status === "APPROVED") return true;
   return !!user?.bank_verified_at;
+}
+
+export function bankStatusLabel(status) {
+  const map = {
+    NOT_SUBMITTED: "Belum diajukan",
+    PENDING: "Menunggu review admin",
+    APPROVED: "Disetujui",
+    REJECTED: "Ditolak",
+  };
+  return map[status] || status;
 }
 
 export function needsVerification(user) {

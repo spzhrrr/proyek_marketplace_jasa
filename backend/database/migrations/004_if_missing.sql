@@ -2,7 +2,7 @@
 -- Cara paling aman: jalankan ulang backend/database/schema.sql (reset DB).
 -- Atau jalankan backend/database/migrations/003_bank_verification.sql jika hanya bank yang kurang.
 
-USE proyek_coursenet;
+USE proyek_marketplace;
 
 -- 1) Bank (skip jika kolom sudah ada)
 -- ALTER TABLE users
@@ -26,11 +26,11 @@ CREATE TABLE IF NOT EXISTS user_portfolios (
 
 -- 3) Merchant seed (skip jika pg_merchants sudah ada dari schema.sql)
 INSERT IGNORE INTO pg_merchants (code, name, api_key, webhook_url, webhook_secret) VALUES (
-  'COURSENET',
-  'Mockup Proyek CourseNet',
-  'pg-key-coursenet-mock-2026',
+  'TOLONGIN',
+  'Tolongin Payment',
+  'tolongin-pg-api-key-dev',
   'http://localhost:3000/api/webhooks/payment-gateway',
-  'pg-wh-secret-coursenet-mock'
+  'tolongin-webhook-secret-dev'
 );
 
 SELECT 'Patch portfolio + merchant seed selesai.' AS info;

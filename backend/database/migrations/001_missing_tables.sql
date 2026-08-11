@@ -1,8 +1,8 @@
--- Tambah tabel yang belum ada di proyek_coursenet (tanpa DROP data lama).
+-- Tambah tabel yang belum ada di proyek_marketplace (tanpa DROP data lama).
 -- Kolom FK memakai bigint(20) agar cocok dengan users/jobs/services yang sudah ada.
--- Jalankan SELURUH file di phpMyAdmin → database proyek_coursenet → tab SQL → Go.
+-- Jalankan SELURUH file di phpMyAdmin → database proyek_marketplace → tab SQL → Go.
 
-USE proyek_coursenet;
+USE proyek_marketplace;
 
 SET NAMES utf8mb4;
 
@@ -217,11 +217,11 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO pg_merchants (code, name, api_key, webhook_url, webhook_secret) VALUES (
-  'COURSENET',
-  'Mockup Proyek CourseNet',
-  'pg-key-coursenet-mock-2026',
+  'TOLONGIN',
+  'Tolongin Payment',
+  'tolongin-pg-api-key-dev',
   'http://localhost:3000/api/webhooks/payment-gateway',
-  'pg-wh-secret-coursenet-mock'
+  'tolongin-webhook-secret-dev'
 );
 
 SELECT 'Migrasi tabel selesai.' AS info;

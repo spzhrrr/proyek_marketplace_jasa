@@ -15,7 +15,7 @@ async function attachUser(req, res, next) {
     const payload = verifyToken(token);
     let user = await userModel.findById(payload.id);
 
-    if (!user || !user.is_active) {
+    if (!user || !user.is_active || user.is_banned) {
       req.user = null;
       return next();
     }
@@ -28,7 +28,8 @@ async function attachUser(req, res, next) {
 
     const roleChanged = payload.role !== user.role;
     const ktpChanged = payload.ktp_status !== user.ktp_status;
-    if (roleChanged || ktpChanged) {
+    const bankChanged = payload.bank_status !== user.bank_status;
+    if (roleChanged || ktpChanged || bankChanged) {
       setAuthCookie(res, user);
     }
 

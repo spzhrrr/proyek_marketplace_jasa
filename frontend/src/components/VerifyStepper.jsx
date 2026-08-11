@@ -23,9 +23,14 @@ function stepState(key, steps) {
     if (steps.email.done && steps.phone.done) return "active";
     return "locked";
   }
-  if (steps.bank?.done) return "done";
-  if (!steps.ktp.done) return "locked";
-  return "active";
+  if (key === "bank") {
+    if (steps.bank?.done) return "done";
+    if (steps.bank?.status === "REJECTED") return "rejected";
+    if (steps.bank?.pending) return "active";
+    if (!steps.ktp.done) return "locked";
+    return "active";
+  }
+  return "locked";
 }
 
 function stepHint(key, steps, state) {
@@ -33,37 +38,31 @@ function stepHint(key, steps, state) {
   if (state === "done") return key === "bank" ? "Terverifikasi (post jasa)" : "Terverifikasi";
   if (key === "ktp" && steps.ktp.pending) return "Menunggu review admin";
   if (key === "ktp" && steps.ktp.status === "REJECTED") return "Ditolak — unggah ulang";
+  if (key === "bank" && steps.bank?.pending) return "Menunggu review admin";
+  if (key === "bank" && steps.bank?.status === "REJECTED") return "Ditolak — ajukan ulang";
   if (key === "bank") return "Wajib untuk post jasa";
   return null;
 }
 
 export default function VerifyStepper({ steps, current }) {
   return (
-    <div className="verify-stepper">
+    <div className="horizontal-verify-stepper">
       {STEPS.map((step, i) => {
         const state = stepState(step.key, steps);
         const isCurrent = current === step.key;
-        const hint = stepHint(step.key, steps, state);
-        const showLink = state !== "locked" && state !== "done" && !(step.key === "ktp" && steps.ktp.pending);
 
         return (
-          <div key={step.key} className={`verify-stepper-item ${state} ${isCurrent ? "current" : ""}`}>
-            <div className="verify-stepper-marker">
+          <div key={step.key} className={`stepper-horizontal-item ${state} ${isCurrent ? "active" : ""}`}>
+            <div className="stepper-bubble">
               {state === "done" ? "✓" : i + 1}
             </div>
-            <div className="verify-stepper-body">
-              <strong>{step.label}</strong>
-              {hint && (
-                <span className={state === "done" ? "text-ok" : state === "rejected" ? "text-danger" : "muted"}>
-                  {hint}
-                </span>
-              )}
-              {showLink && (
-                <Link to={step.path} className="verify-stepper-link">
-                  {isCurrent ? "Sedang di sini" : "Lanjutkan →"}
-                </Link>
-              )}
+            <div className="stepper-label-wrap">
+              <span className="stepper-label-text">{step.label}</span>
+              <span className="stepper-sub-status">
+                {state === "done" ? "Terverifikasi" : state === "active" ? "Tahap Ini" : state === "rejected" ? "Ditolak" : "Terkunci"}
+              </span>
             </div>
+            {i < STEPS.length - 1 && <div className="stepper-connector-line" />}
           </div>
         );
       })}

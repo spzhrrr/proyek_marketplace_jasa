@@ -1,5 +1,7 @@
 import { needsVerification } from "./verification.js";
 
+export const BIO_MAX_LENGTH = 180;
+
 export function isProfileComplete(user) {
   if (!user || user.role === "ADMIN") return true;
   if (user.profile_complete === true) return true;

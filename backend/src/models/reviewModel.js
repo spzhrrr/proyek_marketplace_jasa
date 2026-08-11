@@ -34,7 +34,9 @@ async function findByReviewee(userId, limit = 50) {
     `SELECT r.*,
             CONCAT(u.first_name, ' ', u.last_name) AS reviewer_name,
             o.title AS order_title,
-            o.source AS order_source
+            o.source AS order_source,
+            o.seller_id AS order_seller_id,
+            o.buyer_id AS order_buyer_id
      FROM reviews r
      JOIN users u ON r.reviewer_id = u.id
      JOIN orders o ON r.order_id = o.id
@@ -42,6 +44,23 @@ async function findByReviewee(userId, limit = 50) {
      ORDER BY r.created_at DESC
      LIMIT ?`,
     [userId, limit],
+  );
+  return rows;
+}
+
+/** Ulasan untuk listing jasa (order SERVICE + service_id). */
+async function findByService(serviceId, limit = 50) {
+  const [rows] = await pool.query(
+    `SELECT r.*,
+            CONCAT(u.first_name, ' ', u.last_name) AS reviewer_name,
+            o.title AS order_title
+     FROM reviews r
+     JOIN users u ON r.reviewer_id = u.id
+     JOIN orders o ON r.order_id = o.id
+     WHERE o.service_id = ? AND o.source = 'SERVICE' AND r.reviewee_id = o.seller_id
+     ORDER BY r.created_at DESC
+     LIMIT ?`,
+    [serviceId, limit],
   );
   return rows;
 }
@@ -73,4 +92,4 @@ async function getStatsForUser(userId) {
   };
 }
 
-export default { create, findByOrder, hasReviewed, findByReviewee, getStatsForUser };
+export default { create, findByOrder, hasReviewed, findByReviewee, findByService, getStatsForUser };

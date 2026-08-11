@@ -1,0 +1,17 @@
+sequenceDiagram
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  U->>FE: email + password
+  FE->>API: POST /api/mp/auth/login
+  API->>DB: SELECT user by email
+  API->>API: bcrypt.compare
+  alt sukses
+    API-->>FE: Set-Cookie JWT
+    FE-->>U: dashboard / beranda
+  else gagal
+    API-->>FE: 401 Email atau password salah
+    FE-->>U: Alert
+  end

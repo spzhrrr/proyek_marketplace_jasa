@@ -26,13 +26,17 @@ export function verifyToken(token) {
 
 export function setAuthCookie(res, user) {
   const token = signToken(user);
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie("token", token, {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: isProd,
+    sameSite: "lax",
   });
   return token;
 }
 
 export function clearAuthCookie(res) {
-  res.clearCookie("token");
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie("token", { secure: isProd, sameSite: "lax" });
 }

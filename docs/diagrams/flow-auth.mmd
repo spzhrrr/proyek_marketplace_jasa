@@ -1,0 +1,45 @@
+sequenceDiagram
+  autonumber
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  Note over U,DB: Daftar akun
+  U->>FE: isi nama, email, HP, password
+  FE->>FE: cek konfirmasi password
+  FE->>API: POST /auth/register
+  API->>DB: cek email belum terpakai
+  API->>DB: simpan user, hash password
+  API-->>FE: cookie JWT httpOnly
+  FE-->>U: lengkapi profil
+
+  Note over U,DB: Masuk
+  U->>FE: email dan password
+  FE->>API: POST /auth/login
+  API->>DB: ambil user
+  API->>API: bandingkan password
+  alt sukses
+    API-->>FE: cookie JWT
+    FE-->>U: beranda / dashboard
+  else gagal
+    API-->>FE: 401 salah email atau password
+    FE-->>U: tampilkan peringatan
+  end
+
+  Note over U,API: Sesi halaman privat
+  U->>FE: buka halaman yang butuh login
+  FE->>API: GET /me plus cookie
+  alt token sah
+    API-->>FE: data sesi
+    FE-->>U: halaman tampil
+  else token hilang atau rusak
+    API-->>FE: 401
+    FE-->>U: diarahkan ke login
+  end
+
+  Note over U,API: Keluar
+  U->>FE: logout
+  FE->>API: POST /auth/logout
+  API-->>FE: hapus cookie
+  FE-->>U: kembali ke beranda

@@ -36,6 +36,20 @@ function clearMockOtp(userId, type) {
   mockOtpStore.delete(`${userId}:${type}`);
 }
 
+const pendingChange = new Map();
+
+function setPendingChange(userId, type, value) {
+  pendingChange.set(`${userId}:${type}`, value);
+}
+
+function getPendingChange(userId, type) {
+  return pendingChange.get(`${userId}:${type}`) || null;
+}
+
+function clearPendingChange(userId, type) {
+  pendingChange.delete(`${userId}:${type}`);
+}
+
 export {
   generateOtp,
   hashOtp,
@@ -45,4 +59,7 @@ export {
   saveMockOtp,
   getMockOtp,
   clearMockOtp,
+  setPendingChange,
+  getPendingChange,
+  clearPendingChange,
 };

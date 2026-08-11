@@ -1,7 +1,7 @@
 -- Jalankan manual jika DB sudah ada:
--- mysql -u root -p proyek_coursenet < backend/database/migrations/003_bank_verification.sql
+-- mysql -u root -p proyek_marketplace < backend/database/migrations/003_bank_verification.sql
 
-USE proyek_coursenet;
+USE proyek_marketplace;
 
 ALTER TABLE users
   ADD COLUMN bank_name VARCHAR(80) NULL AFTER province,

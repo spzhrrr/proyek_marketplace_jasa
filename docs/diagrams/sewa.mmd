@@ -1,0 +1,35 @@
+sequenceDiagram
+  actor B as Pembeli
+  actor S as Penjual
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+  participant GW as Gateway mock
+
+  B->>FE: Sewa jasa
+  FE->>API: POST /api/mp/jasa/:id/sewa
+  API->>DB: INSERT orders PENDING
+  API-->>FE: order id
+  FE-->>S: notifikasi permintaan
+
+  S->>FE: terima atau tolak
+  alt tolak
+    FE->>API: tolak request
+    API->>DB: orders REJECTED
+  else terima
+    FE->>API: terima request
+    API->>DB: orders ACCEPTED
+    B->>FE: Bayar
+    FE->>API: POST /orders/:id/bayar
+    API->>GW: buat transaksi
+    B->>GW: simulasi pay
+    GW->>API: webhook PAID
+    API->>DB: escrow HELD, IN_PROGRESS
+    S->>FE: unggah bukti kerja
+    B->>FE: setujui / revisi / sengketa
+    alt setujui
+      API->>DB: COMPLETED + cair wallet
+    else sengketa
+      API->>DB: DISPUTED menunggu admin
+    end
+  end

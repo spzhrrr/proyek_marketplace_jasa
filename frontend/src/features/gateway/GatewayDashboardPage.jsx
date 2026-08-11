@@ -39,7 +39,13 @@ export default function GatewayDashboardPage() {
                   <td>{tx.description || "-"}</td>
                   <td>{rupiah(tx.amount)}</td>
                   <td><span className={`pill pill-${tx.status}`}>{paymentStatusLabel(tx.status)}</span></td>
-                  <td><Link to={`/gateway/pay/${tx.transaction_code}`} className="btn btn-sm btn-primary">Bayar</Link></td>
+                  <td>
+                    {tx.status === "PENDING" ? (
+                      <Link to={`/gateway/pay/${tx.transaction_code}`} className="btn btn-sm btn-primary">Bayar</Link>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

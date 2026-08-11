@@ -6,14 +6,31 @@ const PLATFORM_FEE_RATE = 0.05;
 const listSelect = `
   SELECT o.*,
          CONCAT(buyer.first_name, ' ', buyer.last_name) AS buyer_name,
+         buyer.profilepic_url AS buyer_avatar,
          CONCAT(seller.first_name, ' ', seller.last_name) AS seller_name,
+         seller.profilepic_url AS seller_avatar,
+         seller.city AS seller_city,
+         seller.province AS seller_province,
+         seller.bio AS seller_bio,
+         seller.ktp_status AS seller_ktp_status,
+         buyer.city AS buyer_city,
+         buyer.ktp_status AS buyer_ktp_status,
          sv.title AS service_title,
-         j.title AS job_title
+         sv.cover_image_url AS service_cover,
+         sv.delivery_days AS service_delivery_days,
+         sv.description AS service_description,
+         cat.type AS service_parent_type,
+         cat.name AS service_category_name,
+         j.title AS job_title,
+         j.description AS job_description,
+         jcat.name AS job_category_name
   FROM orders o
   JOIN users buyer ON o.buyer_id = buyer.id
   JOIN users seller ON o.seller_id = seller.id
   LEFT JOIN services sv ON o.service_id = sv.id
+  LEFT JOIN categories cat ON sv.category_id = cat.id
   LEFT JOIN jobs j ON o.job_id = j.id
+  LEFT JOIN categories jcat ON j.category_id = jcat.id
 `;
 
 function getTotalAmount(order) {
@@ -29,6 +46,14 @@ async function findByBuyer(userId) {
   const [rows] = await pool.query(
     listSelect + " WHERE o.buyer_id = ? ORDER BY o.created_at DESC",
     [userId],
+  );
+  return rows;
+}
+
+async function findByServiceId(serviceId) {
+  const [rows] = await pool.query(
+    listSelect + " WHERE o.service_id = ? AND o.source = 'SERVICE' ORDER BY o.created_at DESC",
+    [serviceId],
   );
   return rows;
 }
@@ -58,7 +83,7 @@ async function createServiceRequestSafe(data) {
     const [active] = await conn.query(
       `SELECT id FROM orders
        WHERE buyer_id = ? AND service_id = ? AND source = 'SERVICE'
-         AND status IN ('PENDING', 'ACCEPTED', 'IN_PROGRESS')
+         AND status IN ('PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DISPUTED')
        LIMIT 1 FOR UPDATE`,
       [data.buyer_id, data.service_id],
     );
@@ -212,7 +237,7 @@ async function hasActiveJobOrder(jobId) {
   const [rows] = await pool.query(
     `SELECT id FROM orders
      WHERE job_id = ? AND source = 'JOB'
-       AND status IN ('ACCEPTED', 'IN_PROGRESS', 'COMPLETED')
+       AND status IN ('ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'DISPUTED')
      LIMIT 1`,
     [jobId],
   );
@@ -243,11 +268,16 @@ function canBuyerCancel(order) {
   return false;
 }
 
+/** Dispute hanya saat dana ditahan & sedang dikerjakan */
+function canDispute(order) {
+  return order.status === "IN_PROGRESS" && order.escrow === "HELD";
+}
+
 async function findActiveServiceRequest(buyerId, serviceId) {
   const [rows] = await pool.query(
     `SELECT id, status FROM orders
      WHERE buyer_id = ? AND service_id = ? AND source = 'SERVICE'
-       AND status IN ('PENDING', 'ACCEPTED', 'IN_PROGRESS')
+       AND status IN ('PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DISPUTED')
      ORDER BY created_at DESC
      LIMIT 1`,
     [buyerId, serviceId],
@@ -269,8 +299,30 @@ async function countAll() {
 }
 
 async function findAllAdmin(limit = 100) {
-  const [rows] = await pool.query(listSelect + " ORDER BY o.created_at DESC LIMIT ?", [limit]);
+  return findAllAdminWithFilter("all", limit);
+}
+
+async function findAllAdminWithFilter(status = "all", limit = 100) {
+  let sql = listSelect;
+  const params = [];
+  if (status && status !== "all") {
+    sql += " WHERE o.status = ?";
+    params.push(status);
+  }
+  sql += " ORDER BY o.created_at DESC LIMIT ?";
+  params.push(limit);
+  const [rows] = await pool.query(sql, params);
   return rows;
+}
+
+async function findByUserHistory(userId) {
+  try {
+    const [asBuyer] = await pool.query(listSelect + " WHERE o.buyer_id = ? ORDER BY o.created_at DESC LIMIT 50", [userId]).catch(() => [[]]);
+    const [asSeller] = await pool.query(listSelect + " WHERE o.seller_id = ? ORDER BY o.created_at DESC LIMIT 50", [userId]).catch(() => [[]]);
+    return { asBuyer: asBuyer || [], asSeller: asSeller || [] };
+  } catch (e) {
+    return { asBuyer: [], asSeller: [] };
+  }
 }
 
 async function findCompletedAsSeller(sellerId, limit = 20) {
@@ -281,9 +333,18 @@ async function findCompletedAsSeller(sellerId, limit = 20) {
   return rows;
 }
 
+async function findCompletedAsBuyer(buyerId, limit = 20) {
+  const [rows] = await pool.query(
+    listSelect + " WHERE o.buyer_id = ? AND o.status = 'COMPLETED' ORDER BY o.completed_at DESC LIMIT ?",
+    [buyerId, limit],
+  );
+  return rows;
+}
+
 export default {
   findById,
   findByBuyer,
+  findByServiceId,
   findIncomingServiceRequests,
   findBySeller,
   createServiceRequest,
@@ -298,12 +359,16 @@ export default {
   updateEscrow,
   canPay,
   canBuyerCancel,
+  canDispute,
   getTotalAmount,
   findActiveServiceRequest,
   hasPendingServiceRequest,
   cancelByBuyer,
   countAll,
   findAllAdmin,
+  findAllAdminWithFilter,
+  findByUserHistory,
   findCompletedAsSeller,
+  findCompletedAsBuyer,
   PLATFORM_FEE_RATE,
 };

@@ -1,0 +1,22 @@
+sequenceDiagram
+  actor B as Pembeli
+  actor S as Penjual
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  B->>FE: klik Sewa
+  FE->>API: POST /api/mp/jasa/:id/sewa
+  API->>DB: INSERT orders PENDING
+  API-->>FE: order id
+  FE-->>S: notifikasi permintaan
+
+  S->>FE: terima atau tolak
+  alt tolak
+    FE->>API: tolak
+    API->>DB: REJECTED
+  else terima
+    FE->>API: terima
+    API->>DB: ACCEPTED
+    FE-->>B: siap dibayar
+  end

@@ -5,12 +5,15 @@ import Alert from "../../components/Alert.jsx";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import { api } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { isProfileComplete } from "../../utils/profile.js";
+import { isProfileComplete, BIO_MAX_LENGTH } from "../../utils/profile.js";
+import { needsVerification } from "../../utils/verification.js";
+
+import { INDONESIA_PROVINCES, INDONESIA_CITIES } from "../../utils/indonesiaLocations.js";
 
 function SetupForm() {
   const { user, refresh } = useAuth();
   const nav = useNavigate();
-  const [form, setForm] = useState({ bio: "", city: "", province: "" });
+  const [form, setForm] = useState({ bio: "", city: "Jakarta Selatan", province: "DKI Jakarta" });
   const [photo, setPhoto] = useState(null);
   const [preview, setPreview] = useState(user?.profilepic_url || "");
   const [errors, setErrors] = useState([]);
@@ -19,9 +22,9 @@ function SetupForm() {
   useEffect(() => {
     if (user) {
       setForm({
-        bio: user.bio || "",
-        city: user.city || "",
-        province: user.province || "",
+        bio: String(user.bio || "").slice(0, BIO_MAX_LENGTH),
+        city: user.city || "Jakarta Selatan",
+        province: user.province || "DKI Jakarta",
       });
       if (user.profilepic_url) setPreview(user.profilepic_url);
     }
@@ -29,7 +32,7 @@ function SetupForm() {
 
   useEffect(() => {
     if (isProfileComplete(user)) {
-      nav("/verify", { replace: true });
+      nav(needsVerification(user) ? "/verify" : "/dashboard", { replace: true });
     }
   }, [user, nav]);
 
@@ -40,9 +43,15 @@ function SetupForm() {
     setPreview(URL.createObjectURL(file));
   }
 
+  const availableCities = INDONESIA_CITIES[form.province] || ["Kota / Kabupaten"];
+
   async function submit(e) {
     e.preventDefault();
     setErrors([]);
+    if (!photo && !user?.profilepic_url) {
+      setErrors(["Pilih foto profil dulu."]);
+      return;
+    }
     setLoading(true);
     try {
       const fd = new FormData();
@@ -53,7 +62,7 @@ function SetupForm() {
       if (photo) fd.append("profilepic", photo);
       await api.profileUpdate(fd);
       await refresh();
-      nav("/verify", { replace: true });
+      nav("/verify", { replace: true }); // setelah profil: hub aksi KYC (OTP/KTP)
     } catch (err) {
       setErrors(err.errors?.length ? err.errors : [err.message]);
     } finally {
@@ -62,86 +71,124 @@ function SetupForm() {
   }
 
   return (
-    <Layout narrow auth>
-      <div className="panel auth-card onboarding-panel">
-        <div className="onboarding-steps">
-          <span className="onboarding-step active">1. Lengkapi Profil</span>
-          <span className="onboarding-step">2. Verifikasi Akun</span>
+    <Layout wide compact bgClass="app-dash-bg">
+      <div style={{ maxWidth: "600px", margin: "12px auto", background: "#ffffff", borderRadius: "20px", padding: "24px", border: "1.5px solid #e2e8f0", boxShadow: "0 8px 30px rgba(15,23,42,0.04)" }}>
+        {/* Stepper Header Pills */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "#0284c7", color: "#ffffff", padding: "4px 12px", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 800 }}>
+            <span>1</span>
+            <span>Lengkapi Profil</span>
+          </div>
+          <span style={{ color: "#94a3b8", fontWeight: 800 }}>→</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "#f1f5f9", color: "#64748b", padding: "4px 12px", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 700 }}>
+            <span>2</span>
+            <span>Verifikasi Akun</span>
+          </div>
         </div>
-        <h1>Lengkapi profil kamu</h1>
-        <p className="muted">
-          Upload foto profil dan isi biodata. Langkah ini wajib sebelum verifikasi akun.
-        </p>
-        <div className="onboarding-steps-preview">
-          <strong>Setelah profil lengkap, verifikasi:</strong>
-          <ol>
-            <li>Email & nomor HP (kode OTP)</li>
-            <li>KTP (dicek admin 1–2 hari)</li>
-            <li>Rekening bank (hanya jika ingin jual jasa)</li>
-          </ol>
+
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h1 style={{ fontSize: "1.35rem", fontWeight: 900, color: "#0f172a", margin: "0 0 4px" }}>
+            Lengkapi Profil Kamu ✨
+          </h1>
+          <p style={{ color: "#64748b", fontSize: "0.825rem", fontWeight: 600, margin: 0 }}>
+            Upload foto profil dan isi biodata singkat untuk mengaktifkan akun Anda di Tolongin.
+          </p>
         </div>
 
         {errors.map((msg) => (
           <Alert key={msg}>{msg}</Alert>
         ))}
 
-        <form onSubmit={submit} className="form">
-          <div className="profile-setup-photo">
-            <div className="profile-setup-preview">
+        <form onSubmit={submit} className="form" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {/* Avatar Upload Card */}
+          <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", background: "#0284c7", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1.5rem", flexShrink: 0, border: "2px solid #ffffff", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
               {preview ? (
-                <img src={preview} alt="Preview foto profil" className="profile-avatar" />
+                <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
-                <div className="profile-avatar placeholder">
-                  {(user?.first_name?.[0] || "?").toUpperCase()}
-                </div>
+                (user?.first_name?.[0] || "?").toUpperCase()
               )}
             </div>
-            <label className="profile-setup-upload">
-              Foto profil <span className="text-danger">*</span>
+
+            <div style={{ flex: 1 }}>
               <input
+                id="onboarding-photo"
                 type="file"
                 accept="image/jpeg,image/png,image/jpg"
-                required={!user?.profilepic_url}
                 onChange={onPhotoChange}
+                style={{ display: "none" }}
               />
-              <span className="hint">JPG atau PNG, maks. 5 MB</span>
-            </label>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary photo-pick-btn"
+                onClick={() => document.getElementById("onboarding-photo")?.click()}
+              >
+                Pilih foto profil
+              </button>
+              <span style={{ display: "block", fontSize: "0.725rem", color: "#64748b", marginTop: "6px", fontWeight: 600 }}>
+                {photo ? `File dipilih: ${photo.name}` : "JPG atau PNG, maksimal 5 MB. Foto wajah yang jelas."}
+              </span>
+            </div>
           </div>
 
-          <label>
-            Bio / tentang kamu <span className="text-danger">*</span>
+          <div>
+            <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px", display: "block" }}>
+              Bio singkat <span className="text-danger">*</span>
+            </label>
             <textarea
               required
-              rows={4}
+              rows={2}
+              maxLength={BIO_MAX_LENGTH}
+              style={{ padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", fontSize: "0.825rem", fontFamily: "inherit", width: "100%", background: "#ffffff", color: "#0f172a" }}
               value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="Keahlian, pengalaman, atau hal yang ingin ditampilkan di profil..."
+              onChange={(e) => setForm({ ...form, bio: e.target.value.slice(0, BIO_MAX_LENGTH) })}
+              placeholder="Keahlian atau cara kerjamu, tampil di bawah nama profil"
             />
-          </label>
-
-          <div className="form-row">
-            <label>
-              Kota <span className="text-danger">*</span>
-              <input
-                required
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                placeholder="Jakarta"
-              />
-            </label>
-            <label>
-              Provinsi <span className="text-danger">*</span>
-              <input
-                required
-                value={form.province}
-                onChange={(e) => setForm({ ...form, province: e.target.value })}
-                placeholder="DKI Jakarta"
-              />
-            </label>
+            <span style={{ display: "block", fontSize: "0.72rem", color: "#64748b", marginTop: "4px", fontWeight: 600 }}>
+              {form.bio.length}/{BIO_MAX_LENGTH} karakter
+            </span>
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
-            {loading ? "Menyimpan..." : "Simpan & lanjut verifikasi"}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div>
+              <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px", display: "block" }}>
+                Provinsi <span className="text-danger">*</span>
+              </label>
+              <select
+                required
+                style={{ padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", fontSize: "0.825rem", fontFamily: "inherit", width: "100%", background: "#ffffff", color: "#0f172a" }}
+                value={form.province}
+                onChange={(e) => {
+                  const newProv = e.target.value;
+                  const firstCity = INDONESIA_CITIES[newProv]?.[0] || "";
+                  setForm({ ...form, province: newProv, city: firstCity });
+                }}
+              >
+                {INDONESIA_PROVINCES.map((prov) => (
+                  <option key={prov} value={prov}>{prov}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: "4px", display: "block" }}>
+                Kota / Kabupaten <span className="text-danger">*</span>
+              </label>
+              <select
+                required
+                style={{ padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", fontSize: "0.825rem", fontFamily: "inherit", width: "100%", background: "#ffffff", color: "#0f172a" }}
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+              >
+                {availableCities.map((ct) => (
+                  <option key={ct} value={ct}>{ct}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: "10px", borderRadius: "10px", fontWeight: 800, fontSize: "0.875rem", marginTop: "8px" }}>
+            {loading ? "Menyimpan..." : "Simpan & Lanjut Verifikasi Akun →"}
           </button>
         </form>
       </div>

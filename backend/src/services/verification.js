@@ -15,7 +15,15 @@ function isKtpApproved(user) {
 }
 
 function isBankVerified(user) {
-  return !!user?.bank_verified_at;
+  if (!user) return false;
+  if (user.bank_status === "APPROVED") return true;
+  return !!user.bank_verified_at;
+}
+
+function bankStatusOf(user) {
+  if (!user) return "NOT_SUBMITTED";
+  if (user.bank_status) return user.bank_status;
+  return user.bank_verified_at ? "APPROVED" : "NOT_SUBMITTED";
 }
 
 function isTransactionVerified(user) {
@@ -36,6 +44,7 @@ export {
   isContactVerified,
   isKtpApproved,
   isBankVerified,
+  bankStatusOf,
   isTransactionVerified,
   isSellerVerified,
   isAdmin,

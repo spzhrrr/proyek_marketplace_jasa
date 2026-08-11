@@ -1,0 +1,16 @@
+sequenceDiagram
+  actor K as Klien
+  actor P as Pelamar
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  K->>FE: post lowongan
+  FE->>API: POST /api/mp/lowongan
+  API->>DB: jobs OPEN is_active 1
+
+  P->>FE: kirim lamaran
+  FE->>API: POST /lowongan/:id/lamar
+  API->>DB: applications PENDING
+  API-->>FE: notifikasi ke klien
+  Note over K,API: setelah ada pelamar, edit lowongan dikunci

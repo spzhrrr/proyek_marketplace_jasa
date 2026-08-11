@@ -25,6 +25,8 @@ function buildSessionUser(user) {
     bank_account_number: user.bank_account_number || "",
     bank_account_holder: user.bank_account_holder || "",
     bank_verified_at: user.bank_verified_at || null,
+    bank_status: user.bank_status || (user.bank_verified_at ? "APPROVED" : "NOT_SUBMITTED"),
+    bank_rejected_reason: user.bank_rejected_reason || null,
   };
 
   session.profile_complete = isProfileComplete(session);

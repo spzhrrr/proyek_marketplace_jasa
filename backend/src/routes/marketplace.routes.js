@@ -11,7 +11,7 @@ import { handleJasaPostUpload } from "../middleware/uploadMarketplace.js";
 import { handleKtpUpload } from "../middleware/uploadKtp.js";
 import { handleWorkUpload } from "../middleware/uploadWork.js";
 import { handleApplicationUpload } from "../middleware/uploadApplication.js";
-import { handleProfilePortfolioUpload, handleProfilePicUpload } from "../middleware/uploadProfile.js";
+import { handleProfilePicUpload, handleProfilePortfolioUpload } from "../middleware/uploadProfile.js";
 
 const router = express.Router();
 
@@ -23,17 +23,25 @@ router.post("/auth/logout", api.logout);
 
 router.get("/categories", api.categories);
 
+router.get("/chats", requireLoginApi, api.chatInbox);
+router.get("/chats/thread", requireLoginApi, api.chatThread);
+router.post("/chats", requireLoginApi, api.chatSend);
+router.post("/chats/read", requireLoginApi, api.chatRead);
+
 router.get("/jasa", api.jasaList);
 router.get("/jasa/:id", api.jasaShow);
 router.post("/jasa", requireLoginApi, requireSellerVerifiedApi, handleJasaPostUpload, api.jasaCreate);
 router.put("/jasa/:id", requireLoginApi, requireSellerVerifiedApi, handleJasaPostUpload, api.jasaUpdate);
+router.patch("/jasa/:id/toggle-active", requireLoginApi, requireSellerVerifiedApi, api.jasaToggleActive);
 router.delete("/jasa/:id", requireLoginApi, requireSellerVerifiedApi, api.jasaDelete);
 router.post("/jasa/:id/sewa", requireLoginApi, requireKtpApprovedApi, api.jasaSewa);
+router.get("/jasa/:id/requests", requireLoginApi, api.getServiceRequests);
 router.get("/jasa/:id/chat", requireLoginApi, api.jasaChat);
 router.post("/jasa/:id/chat", requireLoginApi, api.jasaChatSend);
 
 router.get("/lowongan", api.lowonganList);
 router.get("/lowongan/:id", api.lowonganShow);
+router.get("/lowongan/:id/lamaran", requireLoginApi, api.getJobApplications);
 router.post(
   "/lowongan",
   requireLoginApi,
@@ -41,7 +49,9 @@ router.post(
   api.lowonganCreate,
 );
 router.put("/lowongan/:id", requireLoginApi, requireKtpApprovedApi, api.lowonganUpdate);
+router.patch("/lowongan/:id/toggle-active", requireLoginApi, requireKtpApprovedApi, api.lowonganToggleActive);
 router.delete("/lowongan/:id", requireLoginApi, requireKtpApprovedApi, api.lowonganDelete);
+router.post("/lowongan/:id/tutup", requireLoginApi, requireKtpApprovedApi, api.lowonganClose);
 router.post(
   "/lowongan/:id/lamar",
   requireLoginApi,
@@ -84,6 +94,10 @@ router.post("/verify/bank", requireLoginApi, api.submitBank);
 
 router.get("/profile/:id", api.profileShow);
 router.put("/profile/me", requireLoginApi, handleProfilePicUpload, api.profileUpdate);
+router.post("/profile/email/start", requireLoginApi, api.profileChangeEmailStart);
+router.post("/profile/email/confirm", requireLoginApi, api.profileChangeEmailConfirm);
+router.post("/profile/phone/start", requireLoginApi, api.profileChangePhoneStart);
+router.post("/profile/phone/confirm", requireLoginApi, api.profileChangePhoneConfirm);
 router.post(
   "/profile/portfolio",
   requireLoginApi,
@@ -94,10 +108,28 @@ router.delete("/profile/portfolio/:itemId", requireLoginApi, api.profileDeletePo
 
 router.get("/admin/dashboard", requireLoginApi, requireAdminApi, api.adminDashboard);
 router.get("/admin/users", requireLoginApi, requireAdminApi, api.adminUsers);
+router.get("/admin/users/:id", requireLoginApi, requireAdminApi, api.adminUserDetail);
 router.get("/admin/orders", requireLoginApi, requireAdminApi, api.adminOrders);
 router.get("/admin/ktp", requireLoginApi, requireAdminApi, api.adminKtpQueue);
 router.get("/admin/ktp/:id", requireLoginApi, requireAdminApi, api.adminKtpDetail);
 router.post("/admin/ktp/:id/approve", requireLoginApi, requireAdminApi, api.adminApproveKtp);
 router.post("/admin/ktp/:id/reject", requireLoginApi, requireAdminApi, api.adminRejectKtp);
+router.get("/admin/bank", requireLoginApi, requireAdminApi, api.adminBankQueue);
+router.get("/admin/bank/:id", requireLoginApi, requireAdminApi, api.adminBankDetail);
+router.post("/admin/bank/:id/approve", requireLoginApi, requireAdminApi, api.adminApproveBank);
+router.post("/admin/bank/:id/reject", requireLoginApi, requireAdminApi, api.adminRejectBank);
+
+router.post("/orders/:id/dispute", requireLoginApi, api.orderDispute);
+router.post("/admin/orders/:id/resolve-dispute", requireLoginApi, requireAdminApi, api.adminResolveDispute);
+
+router.post("/withdrawals", requireLoginApi, api.requestWithdrawal);
+router.get("/withdrawals", requireLoginApi, api.listWithdrawals);
+router.get("/admin/withdrawals", requireLoginApi, requireAdminApi, api.adminWithdrawals);
+router.post("/admin/withdrawals/:id/approve", requireLoginApi, requireAdminApi, api.adminApproveWithdrawal);
+router.post("/admin/withdrawals/:id/reject", requireLoginApi, requireAdminApi, api.adminRejectWithdrawal);
+
+router.post("/reports", requireLoginApi, api.createUserReport);
+router.get("/admin/reports", requireLoginApi, requireAdminApi, api.adminReports);
+router.post("/admin/reports/:reportId/action", requireLoginApi, requireAdminApi, api.adminActionReport);
 
 export default router;

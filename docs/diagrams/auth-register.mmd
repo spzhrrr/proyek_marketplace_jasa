@@ -1,0 +1,13 @@
+sequenceDiagram
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  U->>FE: isi nama, email, HP, password
+  FE->>FE: cek konfirmasi password
+  FE->>API: POST /api/mp/auth/register
+  API->>DB: cek email unik
+  API->>DB: INSERT users + bcrypt.hash
+  API-->>FE: Set-Cookie JWT httpOnly
+  FE-->>U: arahkan onboarding profil

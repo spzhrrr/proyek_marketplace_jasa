@@ -1,0 +1,42 @@
+sequenceDiagram
+  autonumber
+  actor K as Klien
+  actor P as Pelamar
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  Note over K,DB: Pasang lowongan
+  K->>FE: isi judul, budget, batas lamaran
+  FE->>API: simpan lowongan
+  API->>DB: status terbuka, tampil di Cari Kerja
+
+  Note over P,DB: Kirim lamaran
+  P->>FE: cover letter, harga, file
+  FE->>API: kirim lamaran
+  API->>DB: lamaran menunggu
+  API-->>K: notifikasi pelamar baru
+  Note over K,API: setelah ada pelamar, edit lowongan dikunci
+
+  alt klien menerima satu orang
+    K->>FE: terima pelamar
+    FE->>API: rekrut
+    API->>DB: pelamar diterima, lowongan terisi
+    API->>DB: pelamar lain tidak terpilih otomatis
+    API->>DB: buat pesanan escrow
+    Note over K,DB: lanjut bayar dan pengerjaan seperti sewa jasa
+  else klien menutup rekrutmen
+    K->>FE: Tutup lowongan
+    FE->>API: tutup
+    API->>DB: semua yang menunggu ditolak, lowongan batal
+    API-->>P: pemberitahuan lowongan ditutup
+  else belum ada pelamar
+    K->>FE: Hapus
+    FE->>API: hapus
+    API->>DB: lowongan batal dan hilang dari katalog
+  else sudah ada pekerja atau proyek berjalan
+    K->>FE: coba nonaktifkan atau hapus
+    FE->>API: ubah status
+    API-->>FE: ditolak, selesaikan pesanan dulu
+    FE-->>K: listing terkunci
+  end

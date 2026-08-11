@@ -1,0 +1,3 @@
+-- Soft-delete jasa. Aman dijalankan ulang lewat
+-- backend/database/phpmyadmin_patch_listing_lifecycle.sql
+-- File patch itu yang dipakai di phpMyAdmin (tanpa DROP data).

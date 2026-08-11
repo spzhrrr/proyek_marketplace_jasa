@@ -1,8 +1,20 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import PagePanel from "./PagePanel.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
-export default function ChatPanel({ title, backTo, backLabel, messages, onSend, placeholder = "Tulis pesan..." }) {
+export default function ChatPanel({
+  title,
+  backTo,
+  backLabel,
+  listingTo,
+  listingLabel,
+  messages,
+  onSend,
+  placeholder = "Tulis pesan...",
+  sendDisabled = false,
+  sendDisabledHint = "",
+}) {
   const { user } = useAuth();
   const boxRef = useRef(null);
 
@@ -14,6 +26,7 @@ export default function ChatPanel({ title, backTo, backLabel, messages, onSend, 
 
   function submit(e) {
     e.preventDefault();
+    if (sendDisabled) return;
     const input = e.target.elements.message;
     const text = input.value.trim();
     if (!text) return;
@@ -22,13 +35,20 @@ export default function ChatPanel({ title, backTo, backLabel, messages, onSend, 
   }
 
   return (
-    <PagePanel title={title} subtitle="Tanya langsung sebelum transaksi" backTo={backTo} backLabel={backLabel} compact>
+    <PagePanel
+      title={title}
+      subtitle={listingTo ? undefined : "Satu thread per jasa atau lowongan"}
+      backTo={backTo}
+      backLabel={backLabel}
+      compact
+      actions={listingTo ? <Link to={listingTo} className="back-link-sm">{listingLabel || "Lihat listing"}</Link> : null}
+    >
       <div className="chat-box" ref={boxRef}>
         {messages.length === 0 ? (
           <p className="chat-empty">Belum ada pesan. Mulai percakapan!</p>
         ) : (
-          messages.map((m, i) => {
-            const mine = i % 2 === 1 && user;
+          messages.map((m) => {
+            const mine = user && Number(m.sender_id) === Number(user.id);
             return (
               <div key={m.id} className={`chat-bubble ${mine ? "mine" : "theirs"}`}>
                 <p className="chat-bubble-text">{m.pesan}</p>
@@ -38,10 +58,14 @@ export default function ChatPanel({ title, backTo, backLabel, messages, onSend, 
           })
         )}
       </div>
-      <form onSubmit={submit} className="chat-form">
-        <input name="message" placeholder={placeholder} autoComplete="off" />
-        <button type="submit" className="btn btn-primary">Kirim</button>
-      </form>
+      {sendDisabled && sendDisabledHint ? (
+        <p className="chat-empty" style={{ marginTop: 12 }}>{sendDisabledHint}</p>
+      ) : (
+        <form onSubmit={submit} className="chat-form">
+          <input name="message" placeholder={placeholder} autoComplete="off" disabled={sendDisabled} />
+          <button type="submit" className="btn btn-primary" disabled={sendDisabled}>Kirim</button>
+        </form>
+      )}
     </PagePanel>
   );
 }

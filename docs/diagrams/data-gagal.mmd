@@ -1,0 +1,20 @@
+sequenceDiagram
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+
+  U->>FE: aksi yang ditolak
+  FE->>API: fetch + cookie
+  alt belum login
+    API-->>FE: 401
+    FE-->>U: Alert + /login
+  else syarat kurang KTP/bank/role
+    API-->>FE: 403
+    FE-->>U: halaman verifikasi
+  else input salah
+    API-->>FE: 400 + errors
+    FE-->>U: Alert validasi
+  else data tidak ada
+    API-->>FE: 404
+    FE-->>U: Pesanan/listing tidak ditemukan
+  end

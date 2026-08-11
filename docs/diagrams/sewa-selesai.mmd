@@ -1,0 +1,21 @@
+sequenceDiagram
+  actor S as Penjual
+  actor B as Pembeli
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  S->>FE: unggah bukti kerja
+  FE->>API: POST submission
+  API->>DB: work_submissions
+  B->>FE: tinjau hasil
+  alt revisi maks 3
+    FE->>API: minta revisi
+    API-->>S: notifikasi
+  else setujui
+    FE->>API: setujui
+    API->>DB: COMPLETED + cair wallet
+  else sengketa
+    FE->>API: buka sengketa
+    API->>DB: DISPUTED
+  end

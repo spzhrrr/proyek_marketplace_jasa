@@ -10,6 +10,7 @@ const PLATFORM_FEE_RATE = 0.05;
  * Terima lamaran secara atomik: cek job OPEN, tolak yang lain, buat order, isi job.
  */
 export async function acceptApplication(appId, buyerId) {
+  await applicationModel.ensureRejectColumns();
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -61,9 +62,10 @@ export async function acceptApplication(appId, buyerId) {
       [app.id],
     );
     await conn.query(
-      `UPDATE applications SET status = 'REJECTED', reviewed_at = NOW()
+      `UPDATE applications SET status = 'REJECTED', reviewed_at = NOW(),
+        reject_reason = ?, reject_kind = 'AUTO_FILLED'
        WHERE job_id = ? AND id != ? AND status = 'PENDING'`,
-      [app.job_id, app.id],
+      [applicationModel.AUTO_FILLED_REASON, app.job_id, app.id],
     );
 
     const [jobUpdate] = await conn.query(

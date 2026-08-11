@@ -1,0 +1,48 @@
+sequenceDiagram
+  autonumber
+  actor B as Pembeli
+  actor S as Penjual
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+  participant GW as Gateway bayar
+
+  Note over B,DB: Permintaan sewa
+  B->>FE: klik Sewa pada jasa aktif
+  FE->>API: buat permintaan sewa
+  API->>DB: pesanan menunggu konfirmasi
+  API-->>S: notifikasi masuk
+  S->>FE: terima atau tolak
+  alt ditolak
+    FE->>API: tolak
+    API->>DB: pesanan ditolak
+    API-->>B: pemberitahuan
+  else diterima
+    FE->>API: terima
+    API->>DB: pesanan siap dibayar
+
+    Note over B,GW: Pembayaran escrow
+    B->>FE: bayar
+    FE->>API: mulai pembayaran
+    API->>GW: buat transaksi
+    B->>GW: selesaikan bayar
+    GW->>API: konfirmasi lunas
+    API->>DB: uang ditahan, pekerjaan berjalan
+    API-->>FE: ruang kerja terbuka
+
+    Note over S,DB: Pengerjaan dan selesai
+    S->>FE: unggah hasil kerja
+    FE->>API: simpan bukti
+    B->>FE: tinjau hasil
+    alt minta revisi
+      FE->>API: revisi
+      API-->>S: kerjakan ulang
+    else setujui
+      FE->>API: setujui
+      API->>DB: selesai, dana cair ke penjual
+    else sengketa
+      FE->>API: buka sengketa
+      API->>DB: menunggu keputusan admin
+    end
+  end
+  Note over B,DB: Selama pesanan masih hidup, jasa tidak boleh dinonaktifkan atau dihapus

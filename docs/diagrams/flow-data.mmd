@@ -1,0 +1,30 @@
+sequenceDiagram
+  autonumber
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+  participant DB as MySQL
+
+  Note over U,DB: Pola setiap aksi data
+  U->>FE: klik atau kirim form
+  FE->>API: permintaan plus cookie sesi
+  API->>API: cek login dan hak akses
+
+  alt belum login
+    API-->>FE: 401
+    FE-->>U: peringatan, ke halaman login
+  else syarat kurang KTP, rekening, atau bukan admin
+    API-->>FE: 403
+    FE-->>U: halaman verifikasi atau dilarang
+  else isian tidak valid
+    API-->>FE: 400
+    FE-->>U: peringatan validasi
+  else data tidak ada
+    API-->>FE: 404
+    FE-->>U: tidak ditemukan
+  else lolos
+    API->>DB: baca atau tulis data
+    DB-->>API: hasil
+    API-->>FE: data berhasil
+    FE-->>U: tampilkan kartu, daftar, atau pindah halaman
+  end

@@ -45,7 +45,7 @@ async function getSummaryForSeller(sellerId) {
     `SELECT COALESCE(SUM(seller_net_amount), 0) AS total, COUNT(*) AS count
      FROM orders
      WHERE seller_id = ? AND escrow = 'HELD'
-       AND status IN ('IN_PROGRESS', 'ACCEPTED')`,
+       AND status IN ('IN_PROGRESS', 'ACCEPTED', 'DISPUTED')`,
     [sellerId],
   );
 

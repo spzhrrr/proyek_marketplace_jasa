@@ -1,0 +1,19 @@
+sequenceDiagram
+  actor U as Pengguna
+  participant FE as React
+  participant API as Express
+
+  U->>FE: buka halaman privat
+  FE->>API: GET /api/mp/me cookie
+  alt JWT valid
+    API-->>FE: session user
+    FE-->>U: render halaman
+  else token hilang / rusak
+    API-->>FE: 401
+    FE-->>U: redirect /login
+  end
+
+  U->>FE: Logout
+  FE->>API: POST /api/mp/auth/logout
+  API-->>FE: hapus cookie
+  FE-->>U: kembali ke beranda
