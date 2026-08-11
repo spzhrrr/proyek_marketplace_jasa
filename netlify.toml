@@ -2,7 +2,7 @@
 # (kalau base = frontend, publish frontend/dist jadi path dobel).
 
 [build]
-  command = "npm --prefix frontend run build"
+  command = "npm --prefix frontend ci && npm --prefix frontend run build"
   publish = "frontend/dist"
 
 [build.environment]
