@@ -1,24 +1,4 @@
--- =============================================================================
--- TOLONGIN MARKETPLACE -- SCHEMA (sesuai Express + React app saat ini)
--- =============================================================================
--- Jalankan SELURUH file ini di phpMyAdmin (tab SQL, lalu Go).
--- Database: proyek_marketplace
---
--- Arsitektur payment (mock gateway terpisah):
---   Marketplace (:3000) <--API--> pg_* tables (/gateway/api)
---   Flow: buat payment → insert pg_transactions → bayar → webhook PAID
---         → applyPaymentSuccess → order IN_PROGRESS + escrow HELD
---
--- Flow pesanan:
---   JASA  : PENDING → (seller terima) ACCEPTED → bayar → IN_PROGRESS → COMPLETED
---   JOB   : lamaran diterima → order ACCEPTED → bayar → IN_PROGRESS → COMPLETED
---
--- Dev: backend :3000, frontend Vite :5173 (proxy /api & /gateway ke backend)
--- Admin seed: admin@mail.com / admin123
--- Gateway: samakan pg_merchants dengan MERCHANT_API_KEY & WEBHOOK_SECRET di .env
--- =============================================================================
--- PENTING: jalankan dari atas ke bawah (jangan potong blok RESET).
--- =============================================================================
+
 
 CREATE DATABASE IF NOT EXISTS proyek_marketplace
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
