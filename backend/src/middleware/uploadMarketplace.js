@@ -4,7 +4,6 @@ import fs from "fs";
 import {
   uploadsJasaCoverDir,
   uploadsJasaPortfolioDir,
-  uploadsLowonganPortfolioDir,
 } from "../config/paths.js";
 
 const COVER_MIMES = ["image/jpeg", "image/jpg", "image/png"];
@@ -21,21 +20,6 @@ const PORTFOLIO_EXT = [".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"];
 function ensureDirs() {
   fs.mkdirSync(uploadsJasaCoverDir, { recursive: true });
   fs.mkdirSync(uploadsJasaPortfolioDir, { recursive: true });
-  fs.mkdirSync(uploadsLowonganPortfolioDir, { recursive: true });
-}
-
-function makeStorage(destinationDir, prefix) {
-  return multer.diskStorage({
-    destination(req, file, cb) {
-      cb(null, destinationDir);
-    },
-    filename(req, file, cb) {
-      const ext = path.extname(file.originalname).toLowerCase();
-      const safeExt = PORTFOLIO_EXT.includes(ext) ? ext : ".bin";
-      const name = `${prefix}-user${req.user.id}-${file.fieldname}-${Date.now()}${safeExt}`;
-      cb(null, name);
-    },
-  });
 }
 
 function coverFilter(req, file, cb) {
@@ -75,12 +59,6 @@ const jasaUpload = multer({
   },
 });
 
-const lowonganUpload = multer({
-  storage: makeStorage(uploadsLowonganPortfolioDir, "lowongan"),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: portfolioFilter,
-});
-
 function wrapUpload(uploadMiddleware, req, res, next) {
   uploadMiddleware(req, res, (err) => {
     if (!err) return next();
@@ -98,15 +76,6 @@ export function handleJasaPostUpload(req, res, next) {
       { name: "cover_image", maxCount: 10 },
       { name: "portfolio_file", maxCount: 1 },
     ]),
-    req,
-    res,
-    next,
-  );
-}
-
-export function handleLowonganPostUpload(req, res, next) {
-  wrapUpload(
-    lowonganUpload.fields([{ name: "portfolio_file", maxCount: 1 }]),
     req,
     res,
     next,

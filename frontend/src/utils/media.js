@@ -13,7 +13,7 @@ export function resolveUploadUrl(path) {
 }
 
 /** Parse cover_image_url field (supports || joined or JSON array) */
-export function parseCoverUrls(urlStr) {
+function parseCoverUrls(urlStr) {
   if (!urlStr || typeof urlStr !== "string") return [];
   const raw = urlStr.trim();
   if (!raw) return [];

@@ -12,7 +12,6 @@ export const UPLOADS_ROOT = path.join(STORAGE_ROOT, "uploads");
 export const uploadsKtpDir = path.join(UPLOADS_ROOT, "ktp");
 export const uploadsJasaCoverDir = path.join(UPLOADS_ROOT, "jasa", "cover");
 export const uploadsJasaPortfolioDir = path.join(UPLOADS_ROOT, "jasa", "portfolio");
-export const uploadsLowonganPortfolioDir = path.join(UPLOADS_ROOT, "lowongan", "portfolio");
 export const uploadsApplicationPortfolioDir = path.join(UPLOADS_ROOT, "applications", "portfolio");
 export const uploadsProfileDir = path.join(UPLOADS_ROOT, "profile");
 export const uploadsWorkDir = path.join(UPLOADS_ROOT, "work");

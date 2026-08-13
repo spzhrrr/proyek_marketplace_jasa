@@ -11,7 +11,7 @@ import { rupiah, orderStatusLabel, escrowLabel, submissionStatusLabel, orderTota
 import { getOrderFlowSteps, getOrderNextHint } from "../../utils/orderGuide.js";
 import PortfolioFileView from "../../components/PortfolioFileView.jsx";
 import { VerifiedMark } from "../../components/CatalogCards.jsx";
-import { resolveUploadUrl } from "../../utils/media.js";
+import { resolveUploadUrl, getFirstCoverUrl, JASA_COVER_FALLBACK } from "../../utils/media.js";
 
 function OrderContent() {
   const { id } = useParams();
@@ -580,8 +580,15 @@ function OrderContent() {
             </div>
 
             <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", flexWrap: "wrap" }}>
-              {order.service_cover ? (
-                <img src={order.service_cover} alt="" style={{ width: "96px", height: "72px", borderRadius: "12px", objectFit: "cover", border: "1px solid #e2e8f0" }} />
+              {order.service_id ? (
+                <img
+                  src={getFirstCoverUrl(order.service_cover) || JASA_COVER_FALLBACK}
+                  alt=""
+                  style={{ width: "96px", height: "72px", borderRadius: "12px", objectFit: "cover", border: "1px solid #e2e8f0" }}
+                  onError={(e) => {
+                    if (e.currentTarget.src !== JASA_COVER_FALLBACK) e.currentTarget.src = JASA_COVER_FALLBACK;
+                  }}
+                />
               ) : (
                 <div style={{ width: "96px", height: "72px", borderRadius: "12px", background: "linear-gradient(135deg, #e0f2fe, #bae6fd)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284c7" }}>
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

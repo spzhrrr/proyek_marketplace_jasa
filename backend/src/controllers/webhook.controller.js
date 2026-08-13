@@ -1,8 +1,7 @@
-import paymentModel from "../models/paymentModel.js";
-import orderModel from "../models/orderModel.js";
-import { applyPaymentSuccess } from "../services/paymentFlow.js";
+import paymentModel from "../models/transaction/paymentModel.js";
+import { applyPaymentSuccess } from "../services/payment/paymentFlow.js";
 import { WEBHOOK_SECRET } from "../config/gateway.js";
-import { getErrorMessage } from "../services/errorMessage.js";
+import { getErrorMessage } from "../utils/errorMessage.js";
 
 async function paymentGatewayWebhook(req, res) {
   try {

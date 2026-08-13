@@ -1,4 +1,4 @@
-import { isAdmin, isContactVerified, isKtpApproved, isSellerVerified } from "../services/verification.js";
+import { isAdmin, isContactVerified, isKtpApproved, isSellerVerified } from "../services/user/verification.js";
 
 export function requireLoginApi(req, res, next) {
   if (!req.user) {
@@ -13,16 +13,6 @@ export function requireAdminApi(req, res, next) {
   }
   if (!isAdmin(req.user)) {
     return res.status(403).json({ ok: false, error: "Hanya admin yang boleh akses" });
-  }
-  next();
-}
-
-export function requireContactVerifiedApi(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ ok: false, error: "Silakan login dulu" });
-  }
-  if (!isContactVerified(req.user)) {
-    return res.status(403).json({ ok: false, error: "Verifikasi email & HP dulu", need: "contact" });
   }
   next();
 }

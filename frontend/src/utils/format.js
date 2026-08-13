@@ -15,11 +15,6 @@ export function formatDate(dateString) {
   });
 }
 
-export function categoryTypeLabel(parentType) {
-  if (parentType === "PHYSICAL") return "🏃 Fisik";
-  return "💻 Digital";
-}
-
 export function timeAgo(dateString) {
   if (!dateString) return "—";
   const date = new Date(dateString);
@@ -43,7 +38,7 @@ export function formatMemberSince(dateString) {
   return date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function formatDeadlineDate(value) {
+function formatDeadlineDate(value) {
   if (!value) return "Fleksibel";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Fleksibel";
@@ -129,11 +124,6 @@ export function paymentStatusLabel(s) {
   return map[s] || s;
 }
 
-/** @deprecated — gunakan orderStatusLabel / applicationStatusLabel */
-export function statusLabel(s) {
-  return orderStatusLabel(s);
-}
-
 /** Status dana — bahasa sederhana, tanpa istilah teknis */
 export function escrowLabel(s) {
   const map = {
@@ -143,13 +133,6 @@ export function escrowLabel(s) {
     REFUNDED: "Uang dikembalikan ke pembeli",
   };
   return map[s] || s;
-}
-
-export function orderStatusClass(s) {
-  if (s === "COMPLETED" || s === "PAID") return "ok";
-  if (s === "PENDING" || s === "SUBMITTED" || s === "ACCEPTED" || s === "IN_PROGRESS") return "wait";
-  if (s === "REJECTED" || s === "CANCELLED" || s === "FAILED") return "bad";
-  return "";
 }
 
 export function orderTotal(order) {

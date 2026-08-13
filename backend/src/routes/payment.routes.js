@@ -1,6 +1,6 @@
 import express from "express";
-import paymentModel from "../models/paymentModel.js";
-import gatewayClient from "../services/gatewayClient.js";
+import paymentModel from "../models/transaction/paymentModel.js";
+import gatewayClient from "../services/payment/gatewayClient.js";
 import { MAIN_APP_URL } from "../config/gateway.js";
 import { requireLoginApi } from "../middleware/apiGuards.js";
 

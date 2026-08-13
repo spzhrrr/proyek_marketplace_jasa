@@ -1,8 +1,8 @@
-export function isEmailVerified(user) {
+function isEmailVerified(user) {
   return !!user?.email_verified_at;
 }
 
-export function isPhoneVerified(user) {
+function isPhoneVerified(user) {
   return !!user?.phone_verified_at;
 }
 

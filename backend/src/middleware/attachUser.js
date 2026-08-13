@@ -1,10 +1,10 @@
-import { verifyToken, setAuthCookie } from "../services/token.js";
-import userModel from "../models/userModel.js";
-import { buildSessionUser } from "../services/sessionUser.js";
+import { verifyToken, setAuthCookie, getTokenFromRequest } from "../utils/token.js";
+import userModel from "../models/user/userModel.js";
+import { buildSessionUser } from "../services/user/sessionUser.js";
 import { isBootstrapAdmin } from "../config/admin.js";
 
 async function attachUser(req, res, next) {
-  const token = req.cookies.token;
+  const token = getTokenFromRequest(req);
 
   if (!token) {
     req.user = null;

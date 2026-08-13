@@ -1,9 +1,8 @@
 import express from "express";
-import api from "../controllers/marketplace.controller.js";
+import api from "../controllers/marketplace/index.js";
 import {
   requireLoginApi,
   requireAdminApi,
-  requireContactVerifiedApi,
   requireKtpApprovedApi,
   requireSellerVerifiedApi,
 } from "../middleware/apiGuards.js";

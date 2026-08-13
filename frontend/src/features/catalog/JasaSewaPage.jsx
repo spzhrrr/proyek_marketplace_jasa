@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "../../layouts/Layout.jsx";
 import Alert from "../../components/Alert.jsx";
-import HelpBox from "../../components/HelpBox.jsx";
 import PagePanel from "../../components/PagePanel.jsx";
 import Loading from "../../components/Loading.jsx";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";

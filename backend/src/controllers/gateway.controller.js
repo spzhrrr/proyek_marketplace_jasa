@@ -1,6 +1,6 @@
-import gatewayTransactionModel from "../models/gatewayTransactionModel.js";
-import gatewayService from "../services/gatewayService.js";
-import { getErrorMessage } from "../services/errorMessage.js";
+import gatewayTransactionModel from "../models/transaction/gatewayTransactionModel.js";
+import gatewayService from "../services/payment/gatewayService.js";
+import { getErrorMessage } from "../utils/errorMessage.js";
 
 function getApiKey(req) {
   return req.headers["x-api-key"] || req.headers["authorization"]?.replace("Bearer ", "");
